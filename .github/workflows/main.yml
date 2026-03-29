@@ -15,20 +15,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run all SQL scripts in order
+      - name: Run all SQL scripts
         shell: pwsh
         run: |
-          # 1. Find all .sql files in the migrations folder
+          # 1. Break down your Connection String to get the Server and DB name
+          # We assume your secret is in the standard format
+          $connString = "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
+          
+          # 2. Get all .sql files and sort them
           $files = Get-ChildItem -Path ./migrations/*.sql | Sort-Object Name
           
-          # 2. Loop through each file and run it
           foreach ($file in $files) {
               Write-Host "--- Executing: $($file.Name) ---"
               
-              # This calls the SQL action specifically for THIS file
-              uses: azure/sql-action@v2
-              with:
-                connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-                path: $($file.FullName)
-                action: 'execute'
+              # 3. Use 'invoke-sqlcmd' (The built-in Power Tool for Azure SQL)
+              # This connects directly using your secret string
+              Invoke-Sqlcmd -ConnectionString $connString -InputFile $file.FullName
+              
+              Write-Host "--- Successfully finished $($file.Name) ---"
           }
