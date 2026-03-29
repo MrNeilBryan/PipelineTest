@@ -1,0 +1,22 @@
+name: Update Azure SQL Database
+
+on:
+  push:
+    branches:
+      - main  # This means: "Run every time I send code to the main branch"
+    paths:
+      - 'migrations/**' # "Only run if I changed something in the migrations folder"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4 # This tells the worker to download your SQL files
+
+      - name: Azure SQL Deploy
+        uses: azure/sql-action@v2
+        with:
+          connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+          path: './migrations/001_create_table.sql' # We will make this more dynamic later!
+          action: 'execute'
