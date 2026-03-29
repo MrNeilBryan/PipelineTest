@@ -17,5 +17,10 @@ jobs:
         uses: azure/sql-action@v2
         with:
           connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-          path: './migrations/001-Create_Table.sql'
+          path: './migrations/*.sql'
           action: 'execute'
+
+
+
+
+ 
