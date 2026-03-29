@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'migrations/**'
+      - 'run_all.sql' # Also watch the boss file for changes
   workflow_dispatch: 
 
 jobs:
@@ -19,6 +20,6 @@ jobs:
         uses: azure/sql-action@v2
         with:
           connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-          # The '/*.sql' tells the robot to find every file
-          path: './migrations/*.sql'
+          # Pointing to exactly ONE file solves the error!
+          path: './run_all.sql'
           action: 'execute'
