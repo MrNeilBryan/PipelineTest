@@ -1,26 +1,30 @@
-name: Azure SQL Deploy
+name: Azure SQL Database Deployment
 
 on:
   push:
-    branches: [ "main" ]  # Runs when you save to main
+    branches:
+      - main
     paths:
-      - 'migrations/**'    # Only runs if you add/change files in the migrations folder
+      - 'migrations/**'
+  workflow_dispatch: # This allows you to click a "Run" button manually
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  deploy-database:
+    runs-on: windows-latest # We use Windows here as it handles SQL CMD tools very reliably
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Azure SQL Deploy
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }} # See Note Below!
+
+      - name: Execute SQL Scripts
         uses: azure/sql-action@v2
         with:
           connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-          path: './migrations/*.sql'
+          # The key change: We point to the FOLDER, but we use a specific 
+          # method to ensure it processes them correctly.
+          path: './migrations'
           action: 'execute'
-
-
-
-
- 
