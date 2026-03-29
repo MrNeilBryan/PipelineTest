@@ -21,5 +21,5 @@ jobs:
         with:
           connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
           # Pointing to exactly ONE file solves the error!
-          path: './run_all.sql'
+          path: './migrations/run_all.sql'
           action: 'execute'
