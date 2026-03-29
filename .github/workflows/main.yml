@@ -15,14 +15,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Execute SQL Scripts
-        uses: azure/sql-action@v2
-        with:
-          # This uses your secret to log in directly
-          connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+      - name: Run all SQL scripts in order
+        shell: pwsh
+        run: |
+          # 1. Find all .sql files in the migrations folder
+          $files = Get-ChildItem -Path ./migrations/*.sql | Sort-Object Name
           
-          # This tells the tool to look at the whole folder
-          path: './migrations'
-          
-          # This tells it to run them one-by-one
-          action: 'execute'
+          # 2. Loop through each file and run it
+          foreach ($file in $files) {
+              Write-Host "--- Executing: $($file.Name) ---"
+              
+              # This calls the SQL action specifically for THIS file
+              uses: azure/sql-action@v2
+              with:
+                connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+                path: $($file.FullName)
+                action: 'execute'
+          }
