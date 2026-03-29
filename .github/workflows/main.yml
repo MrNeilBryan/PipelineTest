@@ -6,25 +6,23 @@ on:
       - main
     paths:
       - 'migrations/**'
-  workflow_dispatch: # This allows you to click a "Run" button manually
+  workflow_dispatch: 
 
 jobs:
   deploy-database:
-    runs-on: windows-latest # We use Windows here as it handles SQL CMD tools very reliably
+    runs-on: windows-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }} # See Note Below!
-
       - name: Execute SQL Scripts
         uses: azure/sql-action@v2
         with:
+          # This uses your secret to log in directly
           connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-          # The key change: We point to the FOLDER, but we use a specific 
-          # method to ensure it processes them correctly.
+          
+          # This tells the tool to look at the whole folder
           path: './migrations'
+          
+          # This tells it to run them one-by-one
           action: 'execute'
