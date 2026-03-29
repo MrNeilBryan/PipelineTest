@@ -15,22 +15,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run all SQL scripts
-        shell: pwsh
-        run: |
-          # 1. Break down your Connection String to get the Server and DB name
-          # We assume your secret is in the standard format
-          $connString = "${{ secrets.AZURE_SQL_CONNECTION_STRING }}"
-          
-          # 2. Get all .sql files and sort them
-          $files = Get-ChildItem -Path ./migrations/*.sql | Sort-Object Name
-          
-          foreach ($file in $files) {
-              Write-Host "--- Executing: $($file.Name) ---"
-              
-              # 3. Use 'invoke-sqlcmd' (The built-in Power Tool for Azure SQL)
-              # This connects directly using your secret string
-              Invoke-Sqlcmd -ConnectionString $connString -InputFile $file.FullName
-              
-              Write-Host "--- Successfully finished $($file.Name) ---"
-          }
+      - name: Azure SQL Deploy
+        uses: azure/sql-action@v2
+        with:
+          connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+          # The '/*.sql' tells the robot to find every file
+          path: './migrations/*.sql'
+          action: 'execute'
