@@ -1,13 +1,7 @@
-name: Azure SQL Database Deployment
+name: Manual Azure SQL Deployment
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'migrations/**'
-      - 'run_all.sql' # Also watch the boss file for changes
-  workflow_dispatch: 
+  workflow_dispatch: # This keeps the "Manual Button" active
 
 jobs:
   deploy-database:
@@ -20,6 +14,6 @@ jobs:
         uses: azure/sql-action@v2
         with:
           connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-          # Pointing to exactly ONE file solves the error!
+          # UPDATED PATH: We added /migrations/ before the filename
           path: './migrations/run_all.sql'
           action: 'execute'
