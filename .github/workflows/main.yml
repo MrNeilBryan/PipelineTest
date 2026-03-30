@@ -1,25 +1,44 @@
-name: Azure SQL Database Deployment
+name: Multi-Environment Deploy
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'migrations/**'
-      - 'run_all.sql' # Also watch the boss file for changes
-  workflow_dispatch: 
+    branches: [ main ]
 
 jobs:
-  deploy-database:
+  # --- STAGE 1: DEV ---
+  deploy-dev:
     runs-on: windows-latest
+    environment: development  # Points to Dev secrets
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Azure SQL Deploy
+      - uses: actions/checkout@v4
+      - name: Deploy to Dev DB
         uses: azure/sql-action@v2
         with:
-          connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
-          # Pointing to exactly ONE file solves the error!
-          path: './migrations/run_all.sql'
-          action: 'execute'
+          connection-string: ${{ secrets.DEV_SQL_CONNECTION_STRING }}
+          path: './run_all.sql'
+
+  # --- STAGE 2: TEST ---
+  deploy-test:
+    needs: deploy-dev        # <--- THE MAGIC LINE: Only runs if Dev is Green!
+    runs-on: windows-latest
+    environment: testing
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Test DB
+        uses: azure/sql-action@v2
+        with:
+          connection-string: ${{ secrets.TEST_SQL_CONNECTION_STRING }}
+          path: './run_all.sql'
+
+  # --- STAGE 3: PROD ---
+  deploy-prod:
+    needs: deploy-test       # <--- Only runs if Test is Green!
+    runs-on: windows-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Prod DB
+        uses: azure/sql-action@v2
+        with:
+          connection-string: ${{ secrets.PROD_SQL_CONNECTION_STRING }}
+          path: './run_all.sql'
